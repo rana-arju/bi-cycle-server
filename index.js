@@ -36,7 +36,12 @@ async function run() {
     const superCycleCollection = client.db("superCycle").collection("products");
     const usersCollection = client.db("superCycle").collection("users");
     // create a document to insert
-   
+   //User Get
+   app.get('/user', async(req, res) => {
+      const cursor = usersCollection.find({});
+      const users = await cursor.toArray();
+      res.send(users);
+   })
     //User Insert/Update
   app.put('/user/:email', async(req, res) => {
     const email = req.params.email;
