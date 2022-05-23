@@ -37,9 +37,8 @@ async function run() {
     const usersCollection = client.db("superCycle").collection("users");
     // create a document to insert
    //User Get
-   app.get('/user', async(req, res) => {
-      const cursor = usersCollection.find({});
-      const users = await cursor.toArray();
+   app.get('/user',verifyJWT, async(req, res) => {
+      const users = await usersCollection.find().toArray();
       res.send(users);
    })
     //User Insert/Update
@@ -55,6 +54,16 @@ async function run() {
     const token = jwt.sign(filter, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'});
     res.send({result, token});
   });
+  //Make Admin
+      app.put('/user/admin/:email', async(req, res) => {
+        const email = req.params.email;
+        const filter = {email: email};
+        const updateDoc = {
+          $set: {role: 'admin'}
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc, options);
+        res.send(result);
+    });
     ///Products
   app.get("/products", async(req, res) => {
   const cursor = superCycleCollection.find({});
