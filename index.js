@@ -13,46 +13,50 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-const verifyToken = async(req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).send({message: 'unauthorize Access'});
-    
-  }
-  const token = authHeader.split(" ")[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded){
-    if (err) {
-      return res.status(403).send({message: 'forbidden Access'})
+const verifyJWT = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader.split(" ")[1];
+    if (!authHeader) {
+      return res.status(404).send({message: "Unauthorize access"})
     }
-    req.decoded = decoded;
-    next();
-  });
-
+    if (token) {
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
+        if (err) {
+          return res.status(403).send({message: "Forbidden access"})
+        }
+   req.decoded= decoded;
+   next();
+});
+    }
+    
 }
 async function run() {
   try {
     await client.connect();
-    const productsCollection = client.db("products-inventory").collection("haiku");
-    const usersCollection = client.db("products-inventory").collection("users");
+    const superCycleCollection = client.db("superCycle").collection("products");
+    const usersCollection = client.db("superCycle").collection("users");
     // create a document to insert
    
-    //User Insert
-    app.put('/user/:email',verifyToken, async(req, res) => {
-      const email = req.params.email;
-      const user = req.body;
-      const filter = {email: email};
-      const options = {
-        upsert: true
-      };
-       const updateDoc = {
-        $set: user,
+    //User Insert/Update
+  app.put('/user/:email', async(req, res) => {
+    const email = req.params.email;
+    const user = req.body;
+    const filter = {email: email};
+    const options = { upsert: true };
+     const updateDoc = {
+      $set: user
     };
     const result = await usersCollection.updateOne(filter, updateDoc, options);
-    const token  = await jwt.sign(filter, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '1d'
-    });
+    const token = jwt.sign(filter, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'});
     res.send({result, token});
-    })
+  });
+    ///Products
+  app.get("/products", async(req, res) => {
+  const cursor = superCycleCollection.find({});
+  const products = await cursor.toArray();
+ 
+  res.send(products);
+})
   } finally {
     // await client.close();
   }
