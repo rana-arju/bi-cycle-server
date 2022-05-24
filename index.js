@@ -77,7 +77,20 @@ async function run() {
     const user = await usersCollection.findOne({email:email});
     const isAdmin = user.role === 'admin';
     res.send(isAdmin);
-  })
+  });
+  //User Update
+   app.put('/user/:email',verifyJWT, async(req, res) => {
+    const email = req.params.email;
+    const user = req.body;
+    const filter = {email: email};
+    const options = { upsert: true };
+    const updateDoc = {
+            $set: user
+        };
+    const result = await usersCollection.updateOne(filter, updateDoc, options);
+    res.send(result);    
+    
+    });
     ///Products
   app.get("/products", async(req, res) => {
   const cursor = superCycleCollection.find({});
