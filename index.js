@@ -85,6 +85,13 @@ async function run() {
  
   res.send(products);
 })
+//Update /insert new product
+app.post('/products', async(req, res) => {
+  const product = req.body;
+  const result = await superCycleCollection.insertOne(product);
+  res.send(result);
+
+})
   } finally {
     // await client.close();
   }
