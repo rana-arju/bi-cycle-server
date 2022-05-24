@@ -79,7 +79,7 @@ async function run() {
     res.send(isAdmin);
   });
   //User Update
-   app.put('/user/:email',verifyJWT, async(req, res) => {
+   app.put('/user/:email', async(req, res) => {
     const email = req.params.email;
     const user = req.body;
     const filter = {email: email};
@@ -89,8 +89,14 @@ async function run() {
         };
     const result = await usersCollection.updateOne(filter, updateDoc, options);
     res.send(result);    
-    
     });
+    //user user details
+    app.get('/user/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = {email:email}
+      const user = await usersCollection.findOne(query);
+      res.send(user)
+    })
     ///Products
   app.get("/products", async(req, res) => {
   const cursor = superCycleCollection.find({});
