@@ -111,6 +111,13 @@ async function run() {
  
   res.send(products);
 });
+//Single Product get
+app.get('/products/:id', async(req, res) => {
+  const id = req.params.id;
+  const query = {_id: ObjectId(id)}
+  const result = await superCycleCollection.findOne(query);
+  res.send(result);
+});
 //Delete Product
 app.delete('/products/:id', async(req, res) => {
   const id = req.params.id;
