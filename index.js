@@ -35,6 +35,7 @@ async function run() {
     await client.connect();
     const superCycleCollection = client.db("superCycle").collection("products");
     const usersCollection = client.db("superCycle").collection("users");
+    const reviewsCollection = client.db("superCycle").collection("reviews");
     // create a document to insert
    //User Get
    app.get('/user',verifyJWT, async(req, res) => {
@@ -104,12 +105,19 @@ async function run() {
  
   res.send(products);
 })
-//Update /insert new product
+//insert new product
 app.post('/products', async(req, res) => {
   const product = req.body;
   const result = await superCycleCollection.insertOne(product);
   res.send(result);
 
+});
+//Get Review
+//post Review
+app.post('/review', async(req, res) => {
+  const review = req.body;
+  const result = await reviewsCollection.insertOne(review);
+  res.send(result);
 })
   } finally {
     // await client.close();
