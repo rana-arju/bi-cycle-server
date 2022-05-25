@@ -113,6 +113,11 @@ app.post('/products', async(req, res) => {
 
 });
 //Get Review
+app.get('/review', async(req, res) => {
+  const cursor = reviewsCollection.find({});
+  const reviews = await cursor.toArray();
+  res.send(reviews);
+})
 //post Review
 app.post('/review', async(req, res) => {
   const review = req.body;
