@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
@@ -98,13 +98,26 @@ async function run() {
       const user = await usersCollection.findOne(query);
       res.send(user)
     })
-    ///Products
-  app.get("/products", async(req, res) => {
+    ///Get all Products
+  app.get("/allproducts", async(req, res) => {
   const cursor = superCycleCollection.find({});
   const products = await cursor.toArray();
+  res.send(products);
+});
+// Get 6 product Products
+  app.get("/products", async(req, res) => {
+  const cursor = superCycleCollection.find({});
+  const products = await cursor.limit(6).toArray();
  
   res.send(products);
-})
+});
+//Delete Product
+app.delete('/products/:id', async(req, res) => {
+  const id = req.params.id;
+  const query = {_id: ObjectId(id)}
+  const result = await superCycleCollection.deleteOne(query);
+  res.send(result);
+});
 //insert new product
 app.post('/products', async(req, res) => {
   const product = req.body;
