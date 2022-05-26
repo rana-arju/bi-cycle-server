@@ -152,6 +152,15 @@ app.post('/order',verifyJWT, async(req, res) => {
   const result = await ordersCollection.insertOne(order);
   res.send(result);
 });
+// Get order product filter by email
+app.get('/order/:email', async(req, res) => {
+    const email = req.params.email;
+    const query = {email:email}
+    const orders = await ordersCollection.findOne(query);
+    res.send(orders)
+})
+
+
   } finally {
     // await client.close();
   }
