@@ -47,10 +47,10 @@ async function run() {
     }
 }
    //User Get
-   app.get('/user',verifyJWT, async(req, res) => {
-      const users = await usersCollection.find().toArray();
+   app.get('/user',verifyJWT,verifyAdmin, async(req, res) => {
+      const users = await usersCollection.find({}).toArray();
       res.send(users);
-   })
+   });
     //User Insert/Update
   app.put('/user/:email', async(req, res) => {
     const email = req.params.email;
@@ -66,8 +66,7 @@ async function run() {
   });
   //Make Admin
   app.put('/user/admin/:email',verifyJWT,verifyAdmin, async(req, res) => {
-    const email = req.params.email;
- 
+      const email = req.params.email;
        const filter = {email: email};
         const updateDoc = {
             $set: {role: 'admin'}
@@ -84,6 +83,16 @@ async function run() {
     const isAdmin = user.role === 'admin';
     res.send(isAdmin);
   });
+  // Admin Remove
+ app.put('/admin/:email',verifyJWT,verifyAdmin, async(req, res) => {
+      const email = req.params.email;
+       const filter = {email: email};
+        const updateDoc = {
+            $set: {role: ''}
+        };
+    const result = await usersCollection.updateOne(filter, updateDoc);
+    res.send(result);
+    });
   //User Update
    app.put('/user/:email', async(req, res) => {
     const email = req.params.email;
@@ -159,12 +168,13 @@ app.post('/order',verifyJWT, async(req, res) => {
 // Get order product filter by email
 app.get('/order/:email', async(req, res) => {
     const email = req.params.email;
-    const orders = await ordersCollection.findOne({email});
+    const cursor = await ordersCollection.find({email:email});
+    const orders = await cursor.toArray();
     res.send(orders)
 });
 // Get order product filter by email
-app.get('/order',verifyJWT, async(req, res) => {
-  const cursor = await ordersCollection.find({}).toArray();
+app.get('/order', async(req, res) => {
+  const cursor = await ordersCollection.find().toArray();
   res.send(cursor);
 });
 
