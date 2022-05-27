@@ -4,6 +4,8 @@ const cors = require('cors');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const app = express();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const port = process.env.PORT || 5000;
 //middleware
 app.use(cors());
@@ -36,6 +38,8 @@ async function run() {
     const usersCollection = client.db("superCycle").collection("users");
     const reviewsCollection = client.db("superCycle").collection("reviews");
     const ordersCollection = client.db("superCycle").collection("orders");
+    const paymentCollections = client.db("superCycle").collection("payments");
+
     // create a document to insert
     const verifyAdmin =async(req, res, next)=>{
     const requester = req.decoded.email;
@@ -46,6 +50,19 @@ async function run() {
       res.status(403).send({message: "forbidden access"})
     }
 }
+   //Payment process
+    app.post('/create-payment-intent',verifyJWT, async(req, res) => {
+      const {price} = req.body;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types: ['card']
+         
+        });
+        res.send({clientSecret: paymentIntent.client_secret})
+      })
+
    //User Get
    app.get('/user',verifyJWT,verifyAdmin, async(req, res) => {
       const users = await usersCollection.find({}).toArray();
@@ -184,6 +201,28 @@ app.delete('/order/:id', async(req, res) => {
   const result = await ordersCollection.deleteOne(query);
   res.send(result);
 });
+//Single Order get by Id
+app.get('/order/:id',verifyJWT, async(req, res) => {
+  const id = req.params.id;
+  const query = {_id: ObjectId(id)}
+  const result = await ordersCollection.findOne(query);
+  res.send(result);
+});
+    //Patch
+    app.patch('/order/:id',verifyJWT, async(req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = {_id: ObjectId(id)};
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        }
+      }
+      const result  = await paymentCollections.insertOne(payment);
+      const updatedBooking = await bookingCollections.updateOne(filter, updatedDoc);
+      res.send(updatedDoc)
+    })
 
   } finally {
     // await client.close();
