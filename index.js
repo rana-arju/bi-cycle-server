@@ -130,7 +130,7 @@ async function run() {
       res.send(user)
     })
     ///Get all Products
-  app.get("/allproducts", async(req, res) => {
+  app.get("/allproducts",verifyJWT, async(req, res) => {
   const cursor = superCycleCollection.find({});
   const products = await cursor.toArray();
   res.send(products);
@@ -202,17 +202,19 @@ app.delete('/order/:id', async(req, res) => {
   res.send(result);
 });
 //Single Order get by Id
-app.get('/order/:id',verifyJWT, async(req, res) => {
-  const id = req.params.id;
+app.get('/order/:id', async(req, res) => {
+  const id = req.params.productId;
+  console.log("id", id);
   const query = {_id: ObjectId(id)}
   const result = await ordersCollection.findOne(query);
-  res.send(result);
+  res.json(result);
 });
     //Patch
-    app.patch('/order/:id',verifyJWT, async(req, res) => {
+  app.patch('/order/:id',verifyJWT, async(req, res) => {
       const id = req.params.id;
       const payment = req.body;
       const filter = {_id: ObjectId(id)};
+     
       const updatedDoc = {
         $set: {
           paid: true,
